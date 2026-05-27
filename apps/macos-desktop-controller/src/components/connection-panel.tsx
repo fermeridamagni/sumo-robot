@@ -1,13 +1,14 @@
+import { Button } from "@ui/button";
 import {
   Bluetooth,
   BluetoothOff,
   ChevronDown,
+  JoystickIcon,
   Plug,
   RefreshCw,
   Unplug,
 } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Button } from "@/components/ui/button";
 import {
   connectSerial,
   disconnectSerial,
@@ -219,7 +220,7 @@ export function ConnectionPanel({
         {/* Serial status */}
         <div className="flex items-center gap-2">
           <div
-            className={`size-2 rounded-full ${
+            className={`aspect-square size-2 rounded-full ${
               isConnected
                 ? "animate-pulse-status bg-foreground"
                 : "bg-muted-foreground/30"
@@ -238,12 +239,15 @@ export function ConnectionPanel({
         {/* Gamepad status */}
         <div className="flex items-center gap-2">
           <div
-            className={`size-2 rounded-full ${
+            className={`aspect-square size-2 rounded-full ${
               gamepadConnected
                 ? "animate-pulse-status bg-foreground"
                 : "bg-muted-foreground/30"
             }`}
           />
+
+          <JoystickIcon className="size-5 text-muted-foreground" />
+
           <span className="text-muted-foreground text-xs">
             {gamepadConnected
               ? `Gamepad: ${gamepadId.split("(")[0].trim()}`

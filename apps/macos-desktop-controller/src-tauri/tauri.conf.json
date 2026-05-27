@@ -15,10 +15,11 @@
         "title": "Magni — Sumo Controller",
         "maximizable": true,
         "resizable": true,
-        "fullscreen": false,
+        "fullscreen": true,
         "maximized": true,
         "minWidth": 900,
-        "minHeight": 600
+        "minHeight": 600,
+        "url": "src/screens/main/index.html"
       }
     ],
     "security": {
