@@ -30,6 +30,9 @@ export default defineConfig(async () => ({
       ignored: ["**/src-tauri/**"],
     },
   },
+  resolve: {
+    tsconfigPaths: true,
+  },
   build: {
     rolldownOptions: {
       input: {
