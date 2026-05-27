@@ -1,11 +1,14 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom/client";
-import "@/styles/globals.css";
 import { ConnectionPanel } from "@/components/connection-panel";
 import { JoystickVisualizer } from "@/components/joystick-visualizer";
 import { MotorGauge } from "@/components/motor-gauge";
 import { TelemetryHud } from "@/components/telemetry-hud";
 import { useGamepad } from "@/hooks/use-gamepad";
+import type { MotorOutput } from "@/lib/arcade-drive";
+import { computeArcadeDrive } from "@/lib/arcade-drive";
+import { sendMotorCommand } from "@/lib/serial-ipc";
+import "@/styles/globals.css";
 
 /** Derives the top-bar status label from serial and gamepad connection flags. */
 const getSystemStatus = (
@@ -20,10 +23,6 @@ const getSystemStatus = (
   }
   return "Offline";
 };
-
-import type { MotorOutput } from "@/lib/arcade-drive";
-import { computeArcadeDrive } from "@/lib/arcade-drive";
-import { sendMotorCommand } from "@/lib/serial-ipc";
 
 /**
  * Main controller application — composes the full telemetry dashboard.
@@ -42,6 +41,8 @@ function ControllerApp() {
     rightDir: 0,
   });
   const [serialConnected, setSerialConnected] = useState(false);
+  const [latency, setLatency] = useState(0);
+  const lastLatencyUpdateRef = useRef(0);
 
   /**
    * Track whether we should be sending commands.
@@ -73,12 +74,20 @@ function ControllerApp() {
        * Errors are silently ignored — a dropped frame is acceptable
        * for a real-time control loop.
        */
+      const start = performance.now();
       sendMotorCommand(
         output.leftPwm,
         output.leftDir,
         output.rightPwm,
         output.rightDir
-      );
+      ).then(() => {
+        const currentLatency = performance.now() - start;
+        const now = performance.now();
+        if (now - lastLatencyUpdateRef.current >= 500) {
+          setLatency(Math.round(currentLatency));
+          lastLatencyUpdateRef.current = now;
+        }
+      });
     }
   }, [gamepad.axes.leftX, gamepad.axes.leftY, gamepad.connected]);
 
@@ -124,9 +133,11 @@ function ControllerApp() {
             gamepadId={gamepad.id}
             onConnectionChange={handleConnectionChange}
           />
+
           <TelemetryHud
             gamepadConnected={gamepad.connected}
             isConnected={serialConnected}
+            latencyMs={latency}
             leftDir={motorOutput.leftDir}
             leftPwm={motorOutput.leftPwm}
             rightDir={motorOutput.rightDir}
@@ -137,13 +148,14 @@ function ControllerApp() {
         {/* Center — Joystick & Motor Visualization */}
         <section className="flex flex-col items-center justify-center gap-8">
           {/* Joystick visualizers row */}
-          <div className="flex items-center gap-12">
+          <div className="flex gap-12">
             <JoystickVisualizer
               label="Left Stick"
               motorOutput={motorOutput}
               x={gamepad.axes.leftX}
               y={gamepad.axes.leftY}
             />
+
             <JoystickVisualizer
               label="Right Stick"
               x={gamepad.axes.rightX}
@@ -270,7 +282,7 @@ function ControllerApp() {
               Drive Mode
             </h2>
             <div className="flex items-center gap-2">
-              <div className="size-2 rounded-full bg-foreground" />
+              <div className="aspect-square size-2 rounded-full bg-foreground" />
               <span className="font-telemetry text-foreground text-xs">
                 Arcade Drive
               </span>

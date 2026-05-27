@@ -13,6 +13,8 @@ interface TelemetryHudProps {
   gamepadConnected: boolean;
   /** Whether the serial connection is active */
   isConnected: boolean;
+  /** Round-trip latency of the motor command IPC (ms) */
+  latencyMs?: number;
   /** Direction for left motor (0=fwd, 1=rev) */
   leftDir: number;
   /** PWM value for left motor (0-255) */
@@ -51,6 +53,7 @@ export function TelemetryHud({
   leftDir,
   rightPwm,
   rightDir,
+  latencyMs,
 }: TelemetryHudProps) {
   const [cps, setCps] = useState(0);
   const frameCountRef = useRef(0);
@@ -90,7 +93,7 @@ export function TelemetryHud({
       </h2>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 gap-x-6 gap-y-2">
+      <div className="grid grid-cols-3 gap-x-6 gap-y-2">
         {/* Commands per second */}
         <div className="flex flex-col">
           <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
@@ -98,6 +101,22 @@ export function TelemetryHud({
           </span>
           <span className="font-telemetry text-foreground text-lg">
             {isConnected && gamepadConnected ? cps : "—"}
+          </span>
+        </div>
+
+        {/* Latency */}
+        <div className="flex flex-col">
+          <span className="text-[10px] text-muted-foreground uppercase tracking-wider">
+            Latency
+          </span>
+          <span
+            className={`font-telemetry text-lg ${
+              isConnected && gamepadConnected && latencyMs && latencyMs > 20
+                ? "text-amber-500"
+                : "text-foreground"
+            }`}
+          >
+            {isConnected && gamepadConnected ? `${latencyMs ?? 0}ms` : "—"}
           </span>
         </div>
 
@@ -167,13 +186,13 @@ export function TelemetryHud({
       {/* System status footer */}
       <div className="flex items-center gap-2 border-border border-t pt-2">
         <div
-          className={`size-1.5 rounded-full ${
+          className={`aspect-square size-1.5 rounded-full ${
             isConnected && gamepadConnected
               ? "animate-pulse-status bg-foreground"
               : "bg-muted-foreground/30"
           }`}
         />
-        <span className="text-[10px] text-muted-foreground">
+        <span className="text-muted-foreground text-xs">
           {getStatusLabel(isConnected, gamepadConnected)}
         </span>
       </div>
