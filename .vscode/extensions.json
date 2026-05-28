@@ -1,0 +1,9 @@
+{
+  "recommendations": [
+    "fermeridamagni.arduino-unified",
+    "rust-lang.rust-analyzer",
+    "tauri-apps.tauri-vscode",
+    "tamasfe.even-better-toml",
+    "biomejs.biome"
+  ]
+}
